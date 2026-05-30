@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>陳震宇 · 整合財務管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0A0B10;--s1:#111219;--s2:#181923;--s3:#1E2030;
+  --b1:#252840;--b2:#2E3155;--b3:#3A3D6B;
+  --t1:#F0F0F8;--t2:#9899B8;--t3:#555878;--t4:#2E3050;
+  --ac:#8B7FFF;--ac2:#B8B0FF;--ac3:rgba(139,127,255,.15);
+  --gr:#3DCFA0;--gr2:#2AB88A;--grd:rgba(61,207,160,.12);
+  --rd:#FF6057;--rd2:#E84040;--rdd:rgba(255,96,87,.12);
+  --am:#F0A040;--amd:rgba(240,160,64,.12);
+  --bl:#5BAEF8;--bld:rgba(91,174,248,.12);
+  --r:10px;--rs:6px;--tr:.18s cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;font-size:13px;line-height:1.6;overflow-x:hidden;}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--s1);}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+
+/* ── HEADER ── */
+.hd{position:sticky;top:0;z-index:200;background:rgba(10,11,16,.9);backdrop-filter:blur(24px);border-bottom:1px solid var(--b1);height:52px;display:flex;align-items:center;padding:0 1.5rem;gap:1rem;}
+.logo{font-family:'Instrument Serif',serif;font-size:17px;letter-spacing:-.02em;white-space:nowrap;}
+.logo em{color:var(--ac2);font-style:italic;}
+.hd-tabs{display:flex;gap:1px;margin-left:auto;overflow-x:auto;scrollbar-width:none;}
+.hd-tabs::-webkit-scrollbar{display:none;}
+.ht{padding:5px 12px;font-size:11.5px;font-weight:500;border:none;background:transparent;color:var(--t3);cursor:pointer;border-radius:var(--rs);transition:var(--tr);white-space:nowrap;display:flex;align-items:center;gap:5px;letter-spacing:.02em;}
+.ht:hover{background:var(--s2);color:var(--t2);}
+.ht.on{background:var(--ac3);color:var(--ac2);}
+.ht-ic{font-size:14px;}
+.hd-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.upd-badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);background:var(--s2);padding:3px 8px;border-radius:99px;border:1px solid var(--b1);white-space:nowrap;}
+.edit-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;font-size:11.5px;font-weight:500;background:var(--ac);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;transition:var(--tr);}
+.edit-btn:hover{background:#7168E0;}
+
+/* ── LAYOUT ── */
+.main{max-width:1180px;margin:0 auto;padding:1.5rem;}
+.pg{display:none;animation:fadeUp .25s ease both;}
+.pg.on{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── SECTION ── */
+.sec-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--b1);}
+.sec-ti{font-family:'Instrument Serif',serif;font-size:20px;font-style:italic;letter-spacing:-.02em;}
+.sec-sub{font-size:11px;color:var(--t3);}
+.sec-act{margin-left:auto;}
+
+/* ── GRIDS ── */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem;}
+.g12{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-bottom:1rem;}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:1rem;}
+@media(max-width:860px){.g4,.g3{grid-template-columns:repeat(2,1fr);}.g2,.g12,.g21{grid-template-columns:1fr;}.hd-tabs .ht span.lbl{display:none;}}
+
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:1.1rem 1.2rem;position:relative;overflow:hidden;transition:border-color var(--tr);}
+.card:hover{border-color:var(--b2);}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,127,255,.15),transparent);pointer-events:none;}
+.card-sm{padding:.8rem 1rem;}
+.kpi-label{font-size:10.5px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.kpi-val{font-family:'Instrument Serif',serif;font-size:26px;letter-spacing:-.03em;line-height:1.1;margin-bottom:3px;}
+.kpi-sub{font-size:10.5px;color:var(--t3);}
+.c-gr{color:var(--gr);} .c-rd{color:var(--rd);} .c-am{color:var(--am);} .c-ac{color:var(--ac2);} .c-bl{color:var(--bl);}
+.card-ti{font-size:12.5px;font-weight:600;color:var(--t1);margin-bottom:.9rem;display:flex;align-items:center;gap:7px;}
+.card-ti .ic{font-size:15px;}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;letter-spacing:.04em;}
+.b-gr{background:var(--grd);color:var(--gr);} .b-rd{background:var(--rdd);color:var(--rd);}
+.b-am{background:var(--amd);color:var(--am);} .b-ac{background:var(--ac3);color:var(--ac2);}
+.b-bl{background:var(--bld);color:var(--bl);}
+
+/* ── ROW ── */
+.dr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--b1);font-size:12.5px;}
+.dr:last-child{border-bottom:none;padding-bottom:0;}
+.dr:first-child{padding-top:0;}
+
+/* ── PROGRESS ── */
+.prog{height:5px;background:var(--s3);border-radius:3px;overflow:hidden;margin:5px 0;}
+.prog-f{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+
+/* ── ALERT BOX ── */
+.al{border-left:2px solid;border-radius:0 var(--rs) var(--rs) 0;padding:9px 12px;font-size:11.5px;line-height:1.7;margin-top:8px;}
+.al-gr{border-color:var(--gr);background:var(--grd);color:#7EEFCA;}
+.al-rd{border-color:var(--rd);background:var(--rdd);color:#FF9E98;}
+.al-am{border-color:var(--am);background:var(--amd);color:#F0C070;}
+.al-ac{border-color:var(--ac);background:var(--ac3);color:var(--ac2);}
+.al-bl{border-color:var(--bl);background:var(--bld);color:#90C8FF;}
+
+/* ── INPUTS ── */
+input,select,textarea{background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t1);font-family:'Noto Sans TC',sans-serif;font-size:12.5px;padding:7px 10px;transition:border-color var(--tr);outline:none;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--ac);}
+select option{background:var(--s2);}
+label{font-size:11.5px;color:var(--t2);display:block;margin-bottom:3px;}
+input[type="range"]{-webkit-appearance:none;height:4px;background:var(--b2);border-radius:2px;padding:0;border:none;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--ac2);cursor:pointer;box-shadow:0 0 0 3px var(--ac3);}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;font-size:12px;font-weight:500;border:1px solid var(--b2);border-radius:var(--rs);cursor:pointer;background:transparent;color:var(--t1);transition:var(--tr);font-family:inherit;letter-spacing:.02em;}
+.btn:hover{background:var(--s2);}
+.btn-ac{background:var(--ac);color:#fff;border-color:var(--ac);}
+.btn-ac:hover{background:#7168E0;}
+.btn-gr{background:var(--grd);color:var(--gr);border-color:var(--gr);}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.btn-ghost{border-color:transparent;color:var(--t3);}
+.btn-ghost:hover{color:var(--t1);background:var(--s2);}
+.btn-danger{color:var(--rd);border-color:var(--rdd);}
+.btn-danger:hover{background:var(--rdd);}
+
+/* ── DIVIDER ── */
+.div{height:1px;background:var(--b1);margin:1rem 0;}
+
+/* ── TAG ── */
+.tag{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;}
+
+/* ── MODAL ── */
+.mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;}
+.mov.on{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);padding:1.5rem;width:min(520px,94vw);max-height:85vh;overflow-y:auto;}
+.modal-ti{font-family:'Instrument Serif',serif;font-size:17px;font-style:italic;margin-bottom:1.1rem;}
+.modal .g2{margin-bottom:8px;}
+
+/* ── TIMELINE ── */
+.tl{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--b1);cursor:pointer;}
+.tl-item:last-child{border-bottom:none;}
+.tl-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px;border:1.5px solid var(--b2);transition:var(--tr);}
+.tl-dot.done{background:var(--grd);border-color:var(--gr);color:var(--gr);}
+.tl-body{flex:1;}
+.tl-name{font-size:12.5px;font-weight:500;margin-bottom:2px;transition:var(--tr);}
+.tl-name.done{text-decoration:line-through;color:var(--t3);}
+.tl-time{font-size:10.5px;color:var(--t3);}
+.tl-desc{font-size:11.5px;color:var(--t2);margin-top:4px;line-height:1.65;}
+
+/* ── MINDSET CARD ── */
+.mc-wrap{display:flex;flex-direction:column;gap:8px;}
+.mc{border-radius:var(--r);padding:.9rem 1rem;border:1px solid transparent;}
+.mc-ti{font-size:12.5px;font-weight:600;margin-bottom:5px;}
+.mc-body{font-size:11.5px;line-height:1.7;}
+
+/* ── STRESS METER ── */
+.stress-meter{height:8px;border-radius:4px;background:var(--s3);overflow:hidden;margin:6px 0;}
+.stress-fill{height:100%;border-radius:4px;transition:width .5s,background .5s;}
+
+/* ── CHART ── */
+.ch-wrap{position:relative;width:100%;}
+
+/* ── PHASE BAR ── */
+.phase-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0;}
+.phase-seg{transition:flex var(--tr);}
+
+/* ── CONSOLIDATE PLAN CARD ── */
+.plan-card{border:1px solid var(--b1);border-radius:var(--r);padding:.9rem 1rem;margin-bottom:8px;cursor:pointer;transition:border-color var(--tr);}
+.plan-card:hover,.plan-card.sel{border-color:var(--ac);}
+.plan-card.sel{background:var(--ac3);}
+
+/* ── HABIT CHECK ── */
+.hc-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--b1);cursor:pointer;}
+.hc-item:last-child{border-bottom:none;}
+.hc-box{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;transition:var(--tr);}
+.hc-box.done{background:var(--gr);border-color:var(--gr);color:#fff;}
+.hc-text{font-size:12px;color:var(--t2);line-height:1.6;}
+.hc-text.done{text-decoration:line-through;color:var(--t3);}
+
+/* ── MOBILE NAV ── */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(10,11,16,.97);backdrop-filter:blur(20px);border-top:1px solid var(--b1);padding:6px 0 max(6px,env(safe-area-inset-bottom));z-index:200;justify-content:space-around;}
+.mn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:9px;font-family:inherit;transition:var(--tr);}
+.mn-btn.on{color:var(--ac2);}
+.mn-ic{font-size:17px;}
+@media(max-width:600px){.mob-nav{display:flex;}.main{padding-bottom:70px;}.hd-tabs{display:none;}}
+
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="logo">震宇 <em>財務系統</em></div>
+  <div class="hd-tabs">
+    <button class="ht on" onclick="go('mindset')"><span class="ht-ic">🧠</span><span class="lbl">心態</span></button>
+    <button class="ht" onclick="go('dashboard')"><span class="ht-ic">📊</span><span class="lbl">儀表板</span></button>
+    <button class="ht" onclick="go('shield')"><span class="ht-ic">🛡</span><span class="lbl">防護層</span></button>
+    <button class="ht" onclick="go('debt')"><span class="ht-ic">💳</span><span class="lbl">負債</span></button>
+    <button class="ht" onclick="go('invest')"><span class="ht-ic">📈</span><span class="lbl">投資</span></button>
+    <button class="ht" onclick="go('goals')"><span class="ht-ic">🎯</span><span class="lbl">目標</span></button>
+    <button class="ht" onclick="go('resource')"><span class="ht-ic">🔀</span><span class="lbl">資源</span></button>
+  </div>
+  <div class="hd-right">
+    <div class="upd-badge" id="upd-badge">最後更新：—</div>
+    <button class="edit-btn" onclick="openDataEditor()">✏ 更新數據</button>
+  </div>
+</header>
+
+<nav class="mob-nav">
+  <button class="mn-btn on" onclick="go('mindset')"><span class="mn-ic">🧠</span>心態</button>
+  <button class="mn-btn" onclick="go('dashboard')"><span class="mn-ic">📊</span>儀表板</button>
+  <button class="mn-btn" onclick="go('shield')"><span class="mn-ic">🛡</span>防護</button>
+  <button class="mn-btn" onclick="go('debt')"><span class="mn-ic">💳</span>負債</button>
+  <button class="mn-btn" onclick="go('invest')"><span class="mn-ic">📈</span>投資</button>
+  <button class="mn-btn" onclick="go('goals')"><span class="mn-ic">🎯</span>目標</button>
+  <button class="mn-btn" onclick="go('resource')"><span class="mn-ic">🔀</span>資源</button>
+</nav>
+
+<main class="main">
+
+<!-- ══════════════ 1. 心態 ══════════════ -->
+<div id="pg-mindset" class="pg on">
+  <div class="sec-hd">
+    <div class="sec-ti">心態 · 思維基礎</div>
+    <div class="sec-sub">財務行為改變的根基</div>
+  </div>
+
+  <!-- 財務壓力測試 -->
+  <div class="card" style="margin-bottom:1rem;">
+    <div class="card-ti"><span class="ic">⚡</span>財務壓力測試 — 先做這個</div>
+    <p style="font-size:12px;color:var(--t2);margin-bottom:12px;">如果下個月收入歸零，你能撐幾個月？這個數字決定後續所有優先順序。</p>
+    <div class="g2" style="margin-bottom:10px;">
+      <div><label>每月固定支出</label><input type="number" id="st-exp" oninput="calcStress()"></div>
+      <div><label>手頭現金</label><input type="number" id="st-cash" oninput="calcStress()"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:3px;">
+      <span>可撐時間</span><span id="st-mo" style="font-weight:600;color:var(--t1);"></span>
+    </div>
+    <div class="stress-meter"><div class="stress-fill" id="st-bar"></div></div>
+    <div id="st-tip"></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">💡</span>三個核心思維</div>
+      <div class="mc-wrap">
+        <div class="mc" style="background:var(--grd);border-color:var(--gr);">
+          <div class="mc-ti" style="color:var(--gr);">現金流健康 ≠ 沒有債</div>
+          <div class="mc-body" style="color:#7EEFCA;">每月能還、能生活，就不算缺錢。焦慮來自「看不清楚」而非真的沒錢。把數字攤開，焦慮自然減半。</div>
+        </div>
+        <div class="mc" style="background:var(--ac3);border-color:var(--ac);">
+          <div class="mc-ti" style="color:var(--ac2);">借錢的目的決定好壞</div>
+          <div class="mc-body" style="color:var(--ac2);">消費型負債讓你更窮；投資型負債讓你更強。判斷標準：這筆錢能讓未來的我賺更多，或省更多嗎？</div>
+        </div>
+        <div class="mc" style="background:var(--amd);border-color:var(--am);">
+          <div class="mc-ti" style="color:var(--am);">收入增長比節省支出更有力</div>
+          <div class="mc-body" style="color:#F0C070;">支出能砍的有限，收入理論上無上限。先穩住支出，再把精力放在讓月收入增加 5,000~10,000 元。</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">⚖️</span>借貸分類原則</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+        <div style="background:var(--rdd);border-radius:var(--rs);padding:.75rem;">
+          <div style="font-size:11.5px;font-weight:600;color:var(--rd);margin-bottom:4px;">❌ 消費型借貸（避免）</div>
+          <div style="font-size:11px;color:#FF9E98;line-height:1.65;">旅遊衣物餐飲、3C 享樂品、無法增值的東西</div>
+        </div>
+        <div style="background:var(--grd);border-radius:var(--rs);padding:.75rem;">
+          <div style="font-size:11.5px;font-weight:600;color:var(--gr);margin-bottom:4px;">✓ 投資型借貸（可接受）</div>
+          <div style="font-size:11px;color:#7EEFCA;line-height:1.65;">ETF / 0050 定期定額、技能課程 / 證照、增加收入的工具</div>
+        </div>
+      </div>
+      <div class="card-ti" style="margin-top:4px;"><span class="ic">📋</span>每月健康自檢</div>
+      <div id="monthly-check-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 2. 儀表板 ══════════════ -->
+<div id="pg-dashboard" class="pg">
+  <div class="sec-hd">
+    <div class="sec-ti">財務儀表板</div>
+    <div class="sec-sub">全局數字快照</div>
+    <div class="sec-act"><button class="btn btn-sm" onclick="openDataEditor()">✏ 更新數字</button></div>
+  </div>
+
+  <div class="g4" id="dash-kpis"></div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">💧</span>現金流瀑布圖</div>
+      <div class="ch-wrap" style="height:210px;"><canvas id="wfChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">🍩</span>支出結構</div>
+      <div id="pie-leg" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;"></div>
+      <div class="ch-wrap" style="height:170px;"><canvas id="pieChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">📋</span>收入明細</div>
+      <div id="dash-inc-list"></div>
+      <div class="div" style="margin:.6rem 0;"></div>
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;">
+        <span style="color:var(--t2);">月收入合計</span><span class="c-gr" id="dash-inc-total">—</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">📋</span>支出明細 <button class="btn btn-sm" style="margin-left:auto;" onclick="openExpModal()">＋</button></div>
+      <div id="dash-exp-list"></div>
+      <div class="div" style="margin:.6rem 0;"></div>
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;">
+        <span style="color:var(--t2);">月支出合計</span><span class="c-am" id="dash-exp-total">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-ti"><span class="ic">🏠</span>房產資產概況</div>
+    <div class="g4">
+      <div><div class="kpi-label">房產估值</div><div class="kpi-val c-gr" id="d-hv">—</div></div>
+      <div><div class="kpi-label">房貸餘額</div><div class="kpi-val" id="d-mb">—</div></div>
+      <div><div class="kpi-label">房產淨值</div><div class="kpi-val c-gr" id="d-eq">—</div></div>
+      <div><div class="kpi-label">房貸年利率</div><div class="kpi-val c-gr">2.25%</div><div class="kpi-sub">父母代繳</div></div>
+    </div>
+    <div class="al al-ac">房產在你名下，是整合高利率負債的最低成本工具。房貸 2.25% vs 卡債 15%，利差 12.75%。</div>
+  </div>
+
+  <div id="dash-alerts"></div>
+</div>
+
+<!-- ══════════════ 3. 防護層 ══════════════ -->
+<div id="pg-shield" class="pg">
+  <div class="sec-hd">
+    <div class="sec-ti">防護層</div>
+    <div class="sec-sub">緊急備用金 × 保險缺口</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">🛡</span>緊急備用金目標</div>
+      <p style="font-size:11.5px;color:var(--t2);margin-bottom:12px;">財務地基，優先順序高於提前還款與投資。先存1個月，再存3個月。</p>
+      <div style="margin-bottom:8px;">
+        <label>目前備用金</label>
+        <input type="number" id="em-cur" oninput="calcEM()">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>每月固定支出</label>
+        <input type="number" id="em-exp" oninput="calcEM()">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>每月可存入備用金</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="range" id="em-save" min="1000" max="15000" step="500" oninput="calcEM()">
+          <span id="em-save-out" style="font-family:'DM Mono',monospace;font-size:12px;min-width:60px;font-weight:500;"></span>
+        </div>
+      </div>
+      <div id="em-result"></div>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">❤️</span>保險缺口盤點</div>
+      <p style="font-size:11.5px;color:var(--t2);margin-bottom:10px;">負債期間最危險的風險是「還活著但無法工作」，失能保障比壽險更重要。</p>
+      <div id="ins-list"></div>
+      <div class="al al-am" style="margin-top:10px;">建議順序：實支實付醫療險 → 失能險 → 意外險 → 壽險。若預算有限，前三項優先。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 4. 負債 ══════════════ -->
+<div id="pg-debt" class="pg">
+  <div class="sec-hd">
+    <div class="sec-ti">負債管理</div>
+    <div class="sec-sub">盤點 × 還款計劃 × 整合方案</div>
+    <div class="sec-act"><button class="btn btn-sm btn-ac" onclick="openDebtModal()">＋ 新增負債</button></div>
+  </div>
+
+  <div class="g4" id="debt-kpis"></div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">📋</span>負債清單</div>
+      <div id="debt-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">📉</span>還款策略</div>
+      <div style="margin-bottom:10px;">
+        <label>每月還款預算</label>
+        <input type="number" id="rp-budget" value="8000" oninput="renderRepay()">
+      </div>
+      <div style="display:flex;gap:5px;margin-bottom:12px;">
+        <button class="btn btn-sm" id="btn-av" onclick="setM('av')">雪崩法（高利率）</button>
+        <button class="btn btn-sm" id="btn-sb" onclick="setM('sb')">滾雪球（低金額）</button>
+      </div>
+      <div id="repay-list"></div>
+      <div id="repay-tip"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem;">
+    <div class="card-ti"><span class="ic">📈</span>負債清零預測（60個月）</div>
+    <div class="ch-wrap" style="height:200px;"><canvas id="debtChart"></canvas></div>
+  </div>
+
+  <!-- 整合方案（原「資源運用」的試算，移到負債頁） -->
+  <div class="card">
+    <div class="card-ti"><span class="ic">🔀</span>負債整合試算</div>
+    <p style="font-size:11.5px;color:var(--t2);margin-bottom:12px;">比較三種整合路徑，試算每月節省金額與總利息差距</p>
+    <div class="g3" style="margin-bottom:10px;">
+      <div><label>整合總金額</label><input type="number" id="con-total" oninput="calcCon()"></div>
+      <div><label>目前月最低還款</label><input type="number" id="con-cur-min" oninput="calcCon()"></div>
+      <div><label>目前加權利率（%）</label><input type="number" id="con-cur-rate" step="0.1" oninput="calcCon()"></div>
+    </div>
+    <div id="con-plans" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+    <div id="con-result"></div>
+    <!-- 國泰專員提案 -->
+    <div class="div"></div>
+    <div class="card-ti"><span class="ic">📩</span>國泰趙婉庭專員提案追蹤</div>
+    <div id="bank-offer-card"></div>
+  </div>
+</div>
+
+<!-- ══════════════ 5. 投資 ══════════════ -->
+<div id="pg-invest" class="pg">
+  <div class="sec-hd">
+    <div class="sec-ti">投資規劃</div>
+    <div class="sec-sub">借貸可行性 × 複利試算 × 配置建議</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">⚖️</span>借貸投資可行性評估</div>
+      <p style="font-size:11.5px;color:var(--t2);margin-bottom:10px;">同時滿足三項條件，槓桿投資才合理。</p>
+      <div id="invest-pre-checks"></div>
+      <div class="div"></div>
+      <div class="g2" style="margin-bottom:8px;">
+        <div><label>借貸利率（%）</label><input type="number" id="iv-rate" value="5.5" step="0.1" oninput="calcIV()"></div>
+        <div><label>預期年報酬率（%）</label><input type="number" id="iv-ret" value="8" step="0.5" oninput="calcIV()"></div>
+      </div>
+      <div><label>投資金額</label><input type="number" id="iv-amt" value="100000" oninput="calcIV()" style="margin-bottom:8px;"></div>
+      <div id="iv-result"></div>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">📐</span>定期定額複利試算</div>
+      <div style="margin-bottom:8px;">
+        <label>每月投入</label>
+        <input type="number" id="cmp-m" value="3000" step="500" oninput="calcCMP()">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>預期年報酬（%）</label>
+        <input type="number" id="cmp-r" value="8" step="0.5" oninput="calcCMP()">
+      </div>
+      <div style="margin-bottom:10px;">
+        <label>投資年數：<span id="cmp-y-out" style="font-weight:600;color:var(--ac2);">10 年</span></label>
+        <input type="range" id="cmp-y" min="1" max="30" value="10" oninput="calcCMP()">
+      </div>
+      <div class="g3" id="cmp-kpis" style="margin-bottom:10px;"></div>
+      <div class="ch-wrap" style="height:160px;"><canvas id="cmpChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-ti"><span class="ic">🧩</span>投資配置建議（整合後）</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="background:var(--ac3);border-radius:var(--rs);padding:.85rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+          <span style="font-size:12px;font-weight:600;color:var(--ac2);">ETF / 0050 定期定額</span>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--ac2);">結餘 30%</span>
+        </div>
+        <div style="font-size:11px;color:var(--ac2);opacity:.8;">每月固定日扣款，不看盤，長期複利。建議從 $3,000/月 起步。</div>
+      </div>
+      <div style="background:var(--amd);border-radius:var(--rs);padding:.85rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+          <span style="font-size:12px;font-weight:600;color:var(--am);">技能 / 課程投資</span>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--am);">結餘 20%</span>
+        </div>
+        <div style="font-size:11px;color:#F0C070;opacity:.8;">以能增加收入的技能為主。影像設計課程已在進行，可延伸到 AI 工具顧問能力。</div>
+      </div>
+      <div style="background:var(--grd);border-radius:var(--rs);padding:.85rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+          <span style="font-size:12px;font-weight:600;color:var(--gr);">緊急備用金（達標前）</span>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gr);">結餘 50%</span>
+        </div>
+        <div style="font-size:11px;color:#7EEFCA;opacity:.8;">備用金達 $150,000 後，這 50% 轉往加速還款或擴大投資。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 6. 目標 ══════════════ -->
+<div id="pg-goals" class="pg">
+  <div class="sec-hd">
+    <div class="sec-ti">目標 · 里程碑</div>
+    <div class="sec-sub">理想生活量化 × 時間軸</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">🌅</span>理想生活量化</div>
+      <div style="margin-bottom:8px;"><label>目標月收入</label><input type="number" id="vi-target" oninput="calcVision()"></div>
+      <div style="margin-bottom:8px;"><label>目前月收入</label><input type="number" id="vi-now" oninput="calcVision()"></div>
+      <div style="margin-bottom:10px;"><label>理想月生活預算</label><input type="number" id="vi-life" oninput="calcVision()"></div>
+      <div id="vi-result"></div>
+      <div class="div"></div>
+      <label>描述你理想的一天</label>
+      <textarea id="vi-desc" rows="3" style="resize:vertical;font-size:12px;" placeholder="早上幾點起床、工作型態、住在哪、下班後做什麼..."></textarea>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">🗺</span>三階段財務路線</div>
+      <div class="tl" id="phase-tl"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-ti"><span class="ic">🏁</span>里程碑時間軸 <span style="font-size:11px;color:var(--t3);margin-left:4px;">點擊勾選</span></div>
+    <div class="tl" id="milestone-tl"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-ti"><span class="ic">🔍</span>現況 vs 理想對比盤點</div>
+    <div id="vision-items-list"></div>
+    <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+      <input type="text" id="vi-new-text" placeholder="新增一個理想元素..." style="flex:1;min-width:120px;font-size:12px;">
+      <select id="vi-new-cat" style="width:88px;font-size:12px;">
+        <option value="have">已擁有</option><option value="need">真正需要</option><option value="want">只是想要</option><option value="lever">可槓桿</option>
+      </select>
+      <button class="btn btn-sm btn-ac" onclick="addVision()">＋</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 7. 資源 ══════════════ -->
+<div id="pg-resource" class="pg">
+  <div class="sec-hd">
+    <div class="sec-ti">資源運用</div>
+    <div class="sec-sub">個人信貸 × 房屋增貸 × 消費習慣</div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem;">
+    <div class="card-ti"><span class="ic">✅</span>動用資源前的四項確認</div>
+    <div id="res-pre-checks"></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-ti"><span class="ic">🏦</span>個人信貸整合方案</div>
+      <p style="font-size:11.5px;color:var(--t2);margin-bottom:10px;">父母不同意房屋增貸的替代路線。向國泰或其他銀行申請低利率信貸，整合卡債+舊信貸。</p>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="background:var(--ac3);border-radius:var(--rs);padding:.85rem;">
+          <div style="font-size:12px;font-weight:600;color:var(--ac2);margin-bottom:4px;">談判底線：一段式固定利率 ≤ 7%</div>
+          <div style="font-size:11px;color:var(--ac2);opacity:.85;line-height:1.65;">低於 7% 才真的低於你的加權平均利率 ~11%。<br>你的籌碼：現有客戶＋22期良好還款記錄＋月收入8萬＋名下有房產。</div>
+        </div>
+        <div style="background:var(--rdd);border-radius:var(--rs);padding:.85rem;">
+          <div style="font-size:12px;font-weight:600;color:var(--rd);margin-bottom:4px;">幸福貸陷阱：段式利率</div>
+          <div style="font-size:11px;color:#FF9E98;line-height:1.65;">前6期1.88%~9.88%，第7期起最高跳到16%。<br>必須要求<strong>一段式固定利率</strong>，才是真正整合。</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-ti"><span class="ic">🏠</span>房屋增貸（待溝通）</div>
+      <p style="font-size:11.5px;color:var(--t2);margin-bottom:10px;">房產在名下，增貸利率 2.25% 是最低成本工具。父母目前不同意，可在財務穩定後再次溝通。</p>
+      <div class="al al-am">此方案暫緩，但不放棄。建議在整合後財務改善、信評提升後，以具體數字展示給父母看效益，再次提出討論。</div>
+      <div class="div"></div>
+      <div class="card-ti" style="margin-bottom:6px;font-size:11.5px;"><span class="ic">📋</span>增貸後必做五件事</div>
+      <ul style="font-size:11.5px;color:var(--t2);line-height:2;padding-left:1rem;">
+        <li>立刻降低信用卡可用額度至 $20,000</li>
+        <li>設定自動還款，避免遲繳傷信評</li>
+        <li>整合後節省的利息：50% 備用金，30% ETF，20% 加速還款</li>
+        <li>6個月後重新評估是否可申請降息</li>
+        <li>絕不用於消費支出</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-ti"><span class="ic">💡</span>消費習慣改善計劃</div>
+    <div class="g2" style="margin-bottom:1rem;">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--rd);margin-bottom:8px;">三大消費盲點</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="background:var(--rdd);border-radius:var(--rs);padding:.75rem;"><div style="font-size:11px;font-weight:600;color:var(--rd);margin-bottom:3px;">現金消費追蹤不到</div><div style="font-size:11px;color:#FF9E98;line-height:1.6;">每月現金支出超過 $34,000。改用信用卡並每月全額繳清。</div></div>
+          <div style="background:var(--amd);border-radius:var(--rs);padding:.75rem;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:3px;">娛樂支出無上限</div><div style="font-size:11px;color:#F0C070;line-height:1.6;">設 $5,000 現金信封，花完停，不補。</div></div>
+          <div style="background:var(--amd);border-radius:var(--rs);padding:.75rem;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:3px;">信用卡現金混用</div><div style="font-size:11px;color:#F0C070;line-height:1.6;">帳單只反映一半花費，集中一張卡全額繳清。</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--gr);margin-bottom:8px;">七個好習慣</div>
+        <div id="habit-list"></div>
+      </div>
+    </div>
+    <div class="card-ti" style="margin-bottom:8px;"><span class="ic">🎟</span>娛樂信封追蹤器</div>
+    <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:120px;"><label>本月已花費</label><input type="number" id="env-spent" value="0" oninput="calcEnv()"></div>
+      <div style="flex:1;min-width:120px;"><label>預算上限</label><input type="number" id="env-budget" value="5000" oninput="calcEnv()"></div>
+    </div>
+    <div id="env-result"></div>
+  </div>
+</div>
+
+</main>
+
+<!-- DATA EDITOR MODAL -->
+<div class="mov" id="dataModal">
+  <div class="modal">
+    <div class="modal-ti">更新財務數據</div>
+    <div style="font-size:11.5px;color:var(--t2);margin-bottom:1rem;">更新後所有圖表與試算自動重新計算</div>
+    <div style="font-size:11.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">── 收入 ──</div>
+    <div class="g2" style="margin-bottom:12px;">
+      <div><label>月薪（稅後）</label><input type="number" id="ed-sal" ></div>
+      <div><label>獎金月均</label><input type="number" id="ed-bon"></div>
+    </div>
+    <div style="font-size:11.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">── 現金 & 負債 ──</div>
+    <div class="g2" style="margin-bottom:4px;">
+      <div><label>手頭備用金</label><input type="number" id="ed-cash"></div>
+      <div><label>信用卡循環餘額</label><input type="number" id="ed-card"></div>
+    </div>
+    <div class="g2" style="margin-bottom:12px;">
+      <div><label>國泰信貸餘額</label><input type="number" id="ed-loan"></div>
+      <div><label>房貸餘額</label><input type="number" id="ed-mort"></div>
+    </div>
+    <div style="font-size:11.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">── 房產 & 目標 ──</div>
+    <div class="g2" style="margin-bottom:12px;">
+      <div><label>房產估值</label><input type="number" id="ed-hval"></div>
+      <div><label>目標月收入</label><input type="number" id="ed-ti"></div>
+    </div>
+    <div style="font-size:11.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">── 信貸方案更新（收到專員回覆後填入）──</div>
+    <div class="g2" style="margin-bottom:12px;">
+      <div><label>專員給出利率（%）</label><input type="number" id="ed-offer-rate" step="0.1" placeholder="例：6.5"></div>
+      <div><label>方案期數（月）</label><input type="number" id="ed-offer-term" placeholder="例：60"></div>
+    </div>
+    <div style="margin-bottom:1.2rem;"><label>備註（可記錄任何重要變化）</label><textarea id="ed-note" rows="2" style="resize:vertical;font-size:12px;" placeholder="例：2026/06 收到趙婉庭回覆，利率 6.5%，60期..."></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeDataModal()">取消</button>
+      <button class="btn btn-ac" onclick="saveData()">儲存並更新</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEBT MODAL -->
+<div class="mov" id="debtModal">
+  <div class="modal">
+    <div class="modal-ti">新增負債</div>
+    <div style="display:grid;gap:8px;margin-bottom:1rem;">
+      <div><label>名稱</label><input type="text" id="dm-n" placeholder="例：玉山信用卡"></div>
+      <div class="g2"><div><label>類型</label><select id="dm-t"><option value="card">信用卡</option><option value="loan">信貸</option><option value="other">其他</option></select></div><div><label>餘額</label><input type="number" id="dm-a"></div></div>
+      <div class="g2"><div><label>年利率（%）</label><input type="number" id="dm-r" step="0.1"></div><div><label>最低月還款</label><input type="number" id="dm-m"></div></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('debtModal').classList.remove('on')">取消</button>
+      <button class="btn btn-ac" onclick="saveDebt()">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXP MODAL -->
+<div class="mov" id="expModal">
+  <div class="modal">
+    <div class="modal-ti">新增支出項目</div>
+    <div style="display:grid;gap:8px;margin-bottom:1rem;">
+      <div><label>名稱</label><input type="text" id="em-n" placeholder="例：餐費"></div>
+      <div class="g2">
+        <div><label>類別</label><select id="em-c"><option>食</option><option>衣</option><option>住</option><option>行</option><option>育</option><option>通</option><option>保</option><option>樂</option><option>訂閱</option><option>債</option><option>日用</option><option>交際</option></select></div>
+        <div><label>金額</label><input type="number" id="em-a"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('expModal').classList.remove('on')">取消</button>
+      <button class="btn btn-ac" onclick="saveExp()">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  STATE & STORAGE
+// ══════════════════════════════════════
+const KEY = 'fin_hub_v1';
+const DEF = {
+  lastUpdated: new Date().toISOString(),
+  income: { salary:55000, bonus:25000 },
+  cash: 15000,
+  debts: [
+    { id:1, name:'信用卡循環', type:'card', amt:95000, rate:15.0, min:1900 },
+    { id:2, name:'國泰大樹貸', type:'loan', amt:136991, rate:9.13, min:4164 }
+  ],
+  mortgage: { balance:6995336, rate:2.25, monthly:29635 },
+  houseVal: 7770000,
+  offerRate: null, offerTerm: null, offerNote: '',
+  targetIncome: 80000,
+  expenses: [
+    {id:1,name:'餐費',cat:'食',amt:12000},
+    {id:2,name:'衣物',cat:'衣',amt:1500},
+    {id:3,name:'房租+水電',cat:'住',amt:14500},
+    {id:4,name:'交通',cat:'行',amt:1200},
+    {id:5,name:'影像設計課程',cat:'育',amt:4890},
+    {id:6,name:'手機費',cat:'通',amt:1400},
+    {id:7,name:'醫療險',cat:'保',amt:3350},
+    {id:8,name:'娛樂',cat:'樂',amt:8000},
+    {id:9,name:'Spotify+Netflix',cat:'訂閱',amt:240},
+    {id:10,name:'信貸還款',cat:'債',amt:4164},
+    {id:11,name:'日用品',cat:'日用',amt:2000},
+    {id:12,name:'Claude+健身房',cat:'訂閱',amt:1200},
+    {id:13,name:'交際送禮',cat:'交際',amt:1200}
+  ],
+  insurances: [
+    {name:'失能險',have:false,pri:'最高'},
+    {name:'實支實付醫療險',have:true,pri:'高'},
+    {name:'意外傷害險',have:false,pri:'高'},
+    {name:'壽險',have:false,pri:'中'},
+    {name:'癌症/重疾險',have:false,pri:'中'}
+  ],
+  milestones: [
+    {id:1,text:'填完財務儀表板，看清楚每月現金流',done:true,time:'✅ 已完成'},
+    {id:2,text:'傳送整合貸款需求給國泰趙婉庭專員',done:true,time:'✅ 已完成'},
+    {id:3,text:'收到專員回覆，確認整合方案條件',done:false,time:'等待中'},
+    {id:4,text:'存到緊急備用金 $30,000（1個月）',done:false,time:'1~3 個月'},
+    {id:5,text:'完成負債整合，降低月利息',done:false,time:'2~3 個月'},
+    {id:6,text:'信用卡循環清零，改為全額繳清',done:false,time:'3~6 個月'},
+    {id:7,text:'緊急備用金達 $150,000（3個月）',done:false,time:'6~12 個月'},
+    {id:8,text:'開始每月 ETF 定期定額',done:false,time:'6 個月後'},
+    {id:9,text:'負債比降到月收入 20% 以下',done:false,time:'1~2 年'},
+    {id:10,text:'被動收入覆蓋 30% 生活費',done:false,time:'3~5 年'}
+  ],
+  visionItems: [
+    {text:'穩定月收入',cat:'have'},{text:'健康身體',cat:'have'},
+    {text:'無卡債壓力',cat:'need'},{text:'每月可存錢',cat:'need'},
+    {text:'ETF 投資帳戶',cat:'lever'},{text:'顧問副業收入',cat:'lever'},
+    {text:'海外旅遊一次/年',cat:'want'}
+  ],
+  monthlyChecks: [false,false,false,false],
+  habits: [
+    {text:'本月信用卡全額繳清（無新增循環）',done:false},
+    {text:'發薪日已轉 $5,000 到備用金專戶',done:false},
+    {text:'娛樂信封控制在 $5,000 內',done:false},
+    {text:'每週日看過一次信用卡明細',done:false},
+    {text:'本月無衝動型大額消費',done:false},
+    {text:'已更新財務系統數字',done:false},
+    {text:'跟進整合貸款進度',done:false}
+  ],
+  investChecks: [false,false,false],
+  resChecks: [false,false,false,false],
+  repayMethod: 'av',
+  nextId: 200
+};
+
+let S = (() => {
+  try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : JSON.parse(JSON.stringify(DEF)); }
+  catch(e) { return JSON.parse(JSON.stringify(DEF)); }
+})();
+
+function save() {
+  S.lastUpdated = new Date().toISOString();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {}
+  const d = new Date(S.lastUpdated);
+  document.getElementById('upd-badge').textContent = '更新：'+d.toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit'})+' '+d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ══ HELPERS ══
+const fmt = n => Math.round(n).toLocaleString('zh-TW');
+const fmtD = n => '$'+fmt(n);
+const cMo = (p,r,n) => { const mr=r/100/12; return mr===0?p/n:p*mr*Math.pow(1+mr,n)/(Math.pow(1+mr,n)-1); };
+const eMo = (p,r,mp) => { if(mp<=0)return 999; const mr=r/100/12; if(mr===0)return Math.ceil(p/mp); if(mp<=p*mr)return 999; return Math.ceil(Math.log(mp/(mp-p*mr))/Math.log(1+mr)); };
+const catCol = {食:'#8B7FFF',衣:'#3DCFA0',住:'#F0A040',行:'#5BAEF8',育:'#3DCFA0',通:'#F0A040',保:'#5BAEF8',樂:'#FF6057',訂閱:'#777899',債:'#FF6057',日用:'#B48040',交際:'#6B9E4A'};
+
+// ══ CHARTS ══
+let wfC=null,pieC=null,debtC=null,cmpC=null;
+
+function destroyChart(c) { if(c){c.destroy();} return null; }
+
+function mkChart(id,cfg){ return new Chart(document.getElementById(id).getContext('2d'),cfg); }
+
+const chartDefaults = {
+  scales_dark: {
+    y:{ticks:{color:'#555878',maxTicksLimit:5},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'#252840'}},
+    x:{ticks:{color:'#555878',font:{size:10}},grid:{display:false},border:{color:'#252840'}}
+  }
+};
+
+// ══ NAVIGATION ══
+const PAGES = ['mindset','dashboard','shield','debt','invest','goals','resource'];
+function go(id) {
+  PAGES.forEach((p,i) => {
+    document.getElementById('pg-'+p).classList.toggle('on', p===id);
+    document.querySelectorAll('.ht')[i].classList.toggle('on', p===id);
+    document.querySelectorAll('.mn-btn')[i].classList.toggle('on', p===id);
+  });
+  if(id==='mindset') renderMindset();
+  if(id==='dashboard') renderDash();
+  if(id==='shield') renderShield();
+  if(id==='debt') renderDebt();
+  if(id==='invest') renderInvest();
+  if(id==='goals') renderGoals();
+  if(id==='resource') renderResource();
+}
+
+// ══ MINDSET ══
+function renderMindset() {
+  const totalExp = S.expenses.reduce((s,e)=>s+e.amt,0);
+  document.getElementById('st-exp').value = totalExp;
+  document.getElementById('st-cash').value = S.cash;
+  calcStress();
+  const mcItems = ['本月帳單全數繳清','沒有新增消費型負債','緊急備用金沒被動用','ETF 定期定額有扣款'];
+  document.getElementById('monthly-check-list').innerHTML = mcItems.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--b1);cursor:pointer;" onclick="S.monthlyChecks[${i}]=!S.monthlyChecks[${i}];save();renderMindset();">
+      <div class="hc-box ${S.monthlyChecks[i]?'done':''}">${S.monthlyChecks[i]?'✓':''}</div>
+      <span class="hc-text ${S.monthlyChecks[i]?'done':''}">${t}</span>
+    </div>`).join('');
+}
+
+function calcStress() {
+  const exp = parseFloat(document.getElementById('st-exp').value)||1;
+  const cash = parseFloat(document.getElementById('st-cash').value)||0;
+  const m = cash/exp;
+  const pct = Math.min(100, m/6*100);
+  document.getElementById('st-mo').textContent = m.toFixed(1)+' 個月';
+  const bar = document.getElementById('st-bar');
+  bar.style.width = pct+'%';
+  bar.style.background = m<1?'var(--rd)':m<3?'var(--am)':'var(--gr)';
+  const tip = document.getElementById('st-tip');
+  if(m<1){ tip.className='al al-rd'; tip.textContent='🚨 危險：不足1個月。任何突發事件都會造成財務斷鏈。首要任務：建立緊急備用金，優先於一切還款。'; }
+  else if(m<3){ tip.className='al al-am'; tip.textContent='⚠ 警戒：可撐 '+m.toFixed(1)+' 個月。先把備用金提升到3個月，再考慮加速還款。'; }
+  else { tip.className='al al-gr'; tip.textContent='✓ 穩健：緊急備用金充足，可以聚焦在還款加速與投資規劃。'; }
+}
+
+// ══ DASHBOARD ══
+function renderDash() {
+  const tI = S.income.salary + S.income.bonus;
+  const tE = S.expenses.reduce((s,e)=>s+e.amt,0);
+  const cf = tI - tE;
+  const debtMin = S.debts.reduce((s,d)=>s+d.min,0);
+  const dr = tI>0?Math.round(debtMin/tI*100):0;
+  const eq = S.houseVal - S.mortgage.balance;
+
+  document.getElementById('dash-kpis').innerHTML = [
+    {l:'月收入',v:fmtD(tI),c:'c-gr',s:'薪資＋獎金'},
+    {l:'月支出',v:fmtD(tE),c:'c-am',s:'所有固定支出'},
+    {l:'月結餘',v:fmtD(cf),c:cf>10000?'c-gr':cf>0?'c-am':'c-rd',s:'佔收入'+Math.round(cf/tI*100)+'%'},
+    {l:'手頭備用金',v:fmtD(S.cash),c:S.cash>=50000?'c-gr':S.cash>=20000?'c-am':'c-rd',s:'目標 $50,000'}
+  ].map(k=>`<div class="card card-sm"><div class="kpi-label">${k.l}</div><div class="kpi-val ${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
+
+  document.getElementById('d-hv').textContent = fmtD(S.houseVal)+'+';
+  document.getElementById('d-mb').textContent = fmtD(S.mortgage.balance);
+  document.getElementById('d-eq').textContent = fmtD(eq)+'+';
+
+  document.getElementById('dash-inc-list').innerHTML = [
+    {n:'主業薪資（稅後）',a:S.income.salary},{n:'獎金月均',a:S.income.bonus}
+  ].map(r=>`<div class="dr"><span style="flex:1;color:var(--t2);">${r.n}</span><span class="c-gr" style="font-weight:600;">${fmtD(r.a)}</span></div>`).join('');
+  document.getElementById('dash-inc-total').textContent = fmtD(tI);
+
+  document.getElementById('dash-exp-list').innerHTML = S.expenses.map((e,i)=>`
+    <div class="dr">
+      <span class="tag" style="background:${catCol[e.cat]||'#888'}22;color:${catCol[e.cat]||'#888'};font-size:9.5px;min-width:26px;text-align:center;">${e.cat}</span>
+      <span style="flex:1;color:var(--t2);margin-left:5px;font-size:12px;">${e.n||e.name}</span>
+      <input type="number" value="${e.amt}" style="width:78px;font-size:11.5px;text-align:right;padding:3px 6px;" oninput="S.expenses[${i}].amt=parseInt(this.value)||0;save();renderDash();">
+      <button class="btn btn-ghost btn-sm btn-danger" onclick="S.expenses.splice(${i},1);save();renderDash();">✕</button>
+    </div>`).join('');
+  document.getElementById('dash-exp-total').textContent = fmtD(tE);
+
+  renderWF(tI,tE,cf);
+  renderPie(tE);
+
+  const alerts = [];
+  if(S.cash<10000) alerts.push({t:'rd',m:'🚨 手頭現金不足 $10,000，任何突發支出都可能觸發新借貸循環。'});
+  const cardAmt = S.debts.filter(d=>d.type==='card').reduce((s,d)=>s+d.amt,0);
+  if(cardAmt>0) alerts.push({t:'am',m:`💳 信用卡循環 ${fmtD(cardAmt)}，月利息約 ${fmtD(Math.round(cardAmt*0.15/12))} 元。等待整合方案確認中。`});
+  if(S.offerRate) alerts.push({t:'ac',m:`📩 已收到整合提案：${S.offerRate}% × ${S.offerTerm}期。可至負債頁查看試算結果。${S.offerNote?'備註：'+S.offerNote:''}`});
+  else alerts.push({t:'bl',m:'📩 已傳送整合需求給國泰趙婉庭專員，等待回覆中。收到後請至「更新數據」填入方案條件。'});
+  if(cf>5000) alerts.push({t:'gr',m:`✓ 現金流健康，月結餘 ${fmtD(cf)}。發薪日記得先轉 $5,000 到備用金專戶。`});
+  document.getElementById('dash-alerts').innerHTML = alerts.map(a=>`<div class="al al-${a.t}" style="margin-bottom:6px;">${a.m}</div>`).join('');
+}
+
+function renderWF(tI,tE,cf) {
+  wfC = destroyChart(wfC);
+  const cm={};
+  S.expenses.forEach(e=>{cm[e.cat]=(cm[e.cat]||0)+e.amt;});
+  const labels=['收入',...Object.keys(cm),'結餘'];
+  const data=[tI,...Object.values(cm).map(v=>-v),cf];
+  const bg=['#3DCFA0',...Object.keys(cm).map(k=>catCol[k]||'#888'),cf>=0?'#8B7FFF':'#FF6057'];
+  wfC = mkChart('wfChart',{type:'bar',data:{labels,datasets:[{data,backgroundColor:bg,borderRadius:3,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>fmtD(Math.abs(v.raw))}}},
+    scales:{...chartDefaults.scales_dark,x:{...chartDefaults.scales_dark.x,ticks:{...chartDefaults.scales_dark.x.ticks,maxRotation:35}}}}});
+}
+
+function renderPie(tE) {
+  pieC = destroyChart(pieC);
+  const cm={};
+  S.expenses.forEach(e=>{cm[e.cat]=(cm[e.cat]||0)+e.amt;});
+  const cats=Object.keys(cm);
+  document.getElementById('pie-leg').innerHTML=cats.map(c=>`<span style="display:flex;align-items:center;gap:3px;font-size:10.5px;color:var(--t2);"><span style="width:8px;height:8px;border-radius:2px;background:${catCol[c]||'#888'};display:inline-block;"></span>${c} ${Math.round(cm[c]/tE*100)}%</span>`).join('');
+  pieC = mkChart('pieChart',{type:'doughnut',data:{labels:cats,datasets:[{data:cats.map(c=>cm[c]),backgroundColor:cats.map(c=>catCol[c]||'#888'),borderWidth:2,borderColor:'transparent'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'58%'}});
+}
+
+// ══ SHIELD ══
+function renderShield() {
+  const tE = S.expenses.reduce((s,e)=>s+e.amt,0);
+  document.getElementById('em-cur').value = S.cash;
+  document.getElementById('em-exp').value = tE;
+  document.getElementById('em-save').value = 5000;
+  calcEM();
+  document.getElementById('ins-list').innerHTML = S.insurances.map((ins,i)=>`
+    <div class="dr">
+      <div style="width:8px;height:8px;border-radius:50%;background:${ins.have?'var(--gr)':'var(--rd)'};flex-shrink:0;"></div>
+      <span style="flex:1;font-size:12.5px;">${ins.name}</span>
+      <span class="badge ${ins.pri==='最高'?'b-rd':ins.pri==='高'?'b-am':'b-ac'}" style="font-size:9.5px;">${ins.pri}</span>
+      <button class="btn btn-sm ${ins.have?'b-gr':''}" style="min-width:52px;" onclick="S.insurances[${i}].have=!S.insurances[${i}].have;save();renderShield();">${ins.have?'已投保':'未投保'}</button>
+    </div>`).join('');
+}
+
+function calcEM() {
+  const cur=parseFloat(document.getElementById('em-cur').value)||0;
+  const exp=parseFloat(document.getElementById('em-exp').value)||1;
+  const mSave=parseInt(document.getElementById('em-save').value)||5000;
+  document.getElementById('em-save-out').textContent=fmtD(mSave)+'/月';
+  const t1=exp,t3=exp*3;
+  const p1=Math.min(100,Math.round(cur/t1*100)),p3=Math.min(100,Math.round(cur/t3*100));
+  const m1=cur>=t1?0:Math.ceil((t1-cur)/mSave),m3=cur>=t3?0:Math.ceil((t3-cur)/mSave);
+  document.getElementById('em-result').innerHTML=`
+    <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--t2);margin-bottom:3px;"><span>第一目標：1個月備用金 ${fmtD(t1)}</span><span style="font-weight:600;">${p1}%</span></div><div class="prog"><div class="prog-f" style="width:${p1}%;background:${p1>=100?'var(--gr)':'var(--ac2)'}"></div></div><div style="font-size:10.5px;color:var(--t3);">${p1>=100?'✅ 已達標':'還差 '+fmtD(t1-cur)+' · 約'+m1+'個月'}</div></div>
+    <div><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--t2);margin-bottom:3px;"><span>最終目標：3個月備用金 ${fmtD(t3)}</span><span style="font-weight:600;">${p3}%</span></div><div class="prog"><div class="prog-f" style="width:${p3}%;background:${p3>=100?'var(--gr)':p3>33?'var(--am)':'var(--rd)'}"></div></div><div style="font-size:10.5px;color:var(--t3);">${p3>=100?'✅ 已達標':'還差 '+fmtD(t3-cur)+' · 約'+m3+'個月'}</div></div>`;
+}
+
+// ══ DEBT ══
+let repM = S.repayMethod||'av';
+function renderDebt() {
+  const tD=S.debts.reduce((s,d)=>s+d.amt,0);
+  const tInt=S.debts.reduce((s,d)=>s+(d.amt*d.rate/100/12),0);
+  const avgR=tD>0?S.debts.reduce((s,d)=>s+d.rate*d.amt,0)/tD:0;
+  const minP=S.debts.reduce((s,d)=>s+d.min,0);
+  document.getElementById('debt-kpis').innerHTML=[
+    {l:'總負債',v:fmtD(tD),c:'c-rd',s:'不含房貸'},
+    {l:'月利息支出',v:fmtD(Math.round(tInt)),c:'c-rd',s:'每月在空轉'},
+    {l:'加權平均利率',v:avgR.toFixed(1)+'%',c:'c-am',s:'目標降到7%以下'},
+    {l:'月最低還款',v:fmtD(minP),c:'',s:'固定流出'}
+  ].map(k=>`<div class="card card-sm"><div class="kpi-label">${k.l}</div><div class="kpi-val ${k.c}">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`).join('');
+
+  const tNm={card:'信用卡',loan:'信貸',other:'其他'};
+  const tCo={card:'var(--rd)',loan:'var(--ac2)',other:'var(--t2)'};
+  document.getElementById('debt-list').innerHTML=S.debts.map((d,i)=>`
+    <div class="dr">
+      <span class="tag" style="background:${tCo[d.type]}22;color:${tCo[d.type]};font-size:9.5px;">${tNm[d.type]}</span>
+      <span style="flex:1;font-size:12px;margin-left:5px;">${d.name}</span>
+      <span style="font-size:11.5px;color:var(--t3);margin-right:6px;">${d.rate}%</span>
+      <span class="c-rd" style="font-weight:600;min-width:75px;text-align:right;">${fmtD(d.amt)}</span>
+      <button class="btn btn-ghost btn-sm btn-danger" onclick="S.debts.splice(${i},1);save();renderDebt();">✕</button>
+    </div>`).join('')||'<div style="color:var(--t3);font-size:12px;padding:8px 0;">尚無負債記錄</div>';
+
+  setM(repM);
+  renderRepay();
+  renderDebtChart();
+  renderConsolidate();
+  renderBankOffer();
+
+  document.getElementById('con-total').value = tD;
+  document.getElementById('con-cur-min').value = minP;
+  document.getElementById('con-cur-rate').value = avgR.toFixed(1);
+}
+
+function setM(m) {
+  repM=m; S.repayMethod=m; save();
+  ['av','sb'].forEach(k=>{
+    const b=document.getElementById('btn-'+k);
+    b.style.background=k===m?'var(--ac3)':'transparent';
+    b.style.color=k===m?'var(--ac2)':'var(--t2)';
+    b.style.borderColor=k===m?'var(--ac)':'var(--b2)';
+  });
+  renderRepay();
+}
+
+function renderRepay() {
+  if(!S.debts.length){document.getElementById('repay-list').innerHTML='<div style="color:var(--t3);font-size:12px;">尚無負債</div>';return;}
+  const budget=parseFloat(document.getElementById('rp-budget').value)||0;
+  const sorted=[...S.debts].sort((a,b)=>repM==='av'?b.rate-a.rate:a.amt-b.amt);
+  const minT=S.debts.reduce((s,d)=>s+d.min,0);
+  const extra=Math.max(0,budget-minT);
+  const nc=['#FF6057','#F0A040','#3DCFA0','#5BAEF8','#B8B0FF'];
+  document.getElementById('repay-list').innerHTML=sorted.map((d,i)=>{
+    const pay=Math.min(d.amt,d.min+(i===0?extra:0));
+    const mo=eMo(d.amt,d.rate,pay);
+    return`<div class="dr">
+      <div style="width:22px;height:22px;border-radius:50%;background:${nc[i]||'#888'}20;color:${nc[i]||'#888'};font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+      <div style="flex:1;margin-left:4px;"><div style="font-size:12px;font-weight:500;">${d.name} <span style="font-size:10.5px;color:var(--t3);">${d.rate}%</span></div><div style="font-size:10.5px;color:var(--t3);">月還 ${fmtD(pay)}${i===0&&extra>0?' (+額外'+fmtD(extra)+')':''}</div></div>
+      <span style="font-size:12px;font-weight:600;color:${nc[i]||'#888'};">${mo<999?mo+'月':'—'}</span>
+    </div>`;}).join('');
+  document.getElementById('repay-tip').innerHTML=`<div class="al al-ac" style="margin-top:6px;font-size:11px;">${repM==='av'?'雪崩法：優先清 '+sorted[0]?.name+'（'+sorted[0]?.rate+'%），數學上節省最多利息。':'滾雪球：優先清 '+sorted[0]?.name+'（'+fmtD(sorted[0]?.amt||0)+'），快速消滅一筆，提升心理動力。'}</div>`;
+}
+
+function renderDebtChart() {
+  debtC=destroyChart(debtC);
+  if(!S.debts.length)return;
+  const budget=parseFloat(document.getElementById('rp-budget').value)||8000;
+  let pool=[...S.debts].sort((a,b)=>b.rate-a.rate).map(d=>({...d}));
+  const labels=['現在'],bals=[pool.reduce((s,d)=>s+d.amt,0)];
+  for(let m=1;m<=60;m++){
+    let left=budget;
+    pool.forEach(d=>{const p=Math.min(d.amt,d.min);d.amt=Math.max(0,d.amt-p+d.amt*d.rate/100/12);left-=p;});
+    if(left>0)for(const d of pool){const ex=Math.min(left,d.amt);d.amt-=ex;left-=ex;if(left<=0)break;}
+    pool=pool.filter(d=>d.amt>0);
+    const tot=pool.reduce((s,d)=>s+d.amt,0);
+    if(m%6===0){labels.push(m+'月');bals.push(Math.max(0,Math.round(tot)));}
+    if(tot<=0)break;
+  }
+  while(bals.length<labels.length)bals.push(0);
+  debtC=mkChart('debtChart',{type:'line',data:{labels,datasets:[{label:'負債餘額',data:bals,borderColor:'#8B7FFF',backgroundColor:'rgba(139,127,255,.07)',tension:.3,fill:true,pointRadius:3,pointBackgroundColor:'#B8B0FF',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{...chartDefaults.scales_dark,y:{...chartDefaults.scales_dark.y,ticks:{...chartDefaults.scales_dark.y.ticks,callback:v=>'$'+fmt(v/1000)+'k'}}}}});
+}
+
+function renderConsolidate() {
+  const total=parseFloat(document.getElementById('con-total').value)||S.debts.reduce((s,d)=>s+d.amt,0);
+  const curMin=parseFloat(document.getElementById('con-cur-min').value)||S.debts.reduce((s,d)=>s+d.min,0);
+  const curRate=parseFloat(document.getElementById('con-cur-rate').value)||10;
+  const plans=[
+    {name:'房屋增貸（最推薦）',rate:2.25,term:120,icon:'🏠',note:'父母目前不同意，暫緩。利率最低，長期最划算。',dim:true},
+    {name:'個人信貸整合（目標）',rate:7.0,term:60,icon:'🏦',note:'談判底線：一段式固定 ≤7%，60期。國泰現有客戶有籌碼。'},
+    {name:'幸福貸（段式，保守估）',rate:9.5,term:60,icon:'⚠️',note:'前6期優惠後最高16%，此處以平均9.5%估算，請務必要求一段式。',warn:true},
+  ];
+  const curTotInt = curMin*Math.min(eMo(total,curRate,curMin),360)-total;
+  document.getElementById('con-plans').innerHTML=plans.map((p,i)=>{
+    const newM=cMo(total,p.rate,p.term);
+    const newTotInt=newM*p.term-total;
+    const saving=Math.max(0,curTotInt-newTotInt);
+    const mSave=curMin-newM;
+    return`<div class="plan-card ${p.dim?'':''}">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+        <span>${p.icon}</span><span style="font-size:12.5px;font-weight:600;">${p.name}</span>
+        <span class="badge ${p.warn?'b-am':'b-ac'}" style="margin-left:auto;">${p.rate}% / ${p.term}月</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--t2);margin-bottom:6px;">${p.note}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:11.5px;">
+        <div><div style="color:var(--t3);font-size:10.5px;">月還款</div><div style="font-weight:600;">${fmtD(Math.round(newM))}</div></div>
+        <div><div style="color:var(--t3);font-size:10.5px;">月省</div><div style="font-weight:600;color:${mSave>0?'var(--gr)':'var(--rd)'};">${mSave>0?'+':''}${fmtD(Math.round(mSave))}</div></div>
+        <div><div style="color:var(--t3);font-size:10.5px;">省總利息</div><div style="font-weight:600;color:var(--gr);">${fmtD(Math.round(saving))}</div></div>
+      </div>
+    </div>`;}).join('');
+}
+
+function calcCon() { renderConsolidate(); }
+
+function renderBankOffer() {
+  const el=document.getElementById('bank-offer-card');
+  if(S.offerRate){
+    const total=S.debts.reduce((s,d)=>s+d.amt,0);
+    const curMin=S.debts.reduce((s,d)=>s+d.min,0);
+    const newM=cMo(total,S.offerRate,S.offerTerm);
+    const mSave=curMin-newM;
+    el.innerHTML=`<div style="background:var(--grd);border-radius:var(--rs);padding:.9rem;">
+      <div style="font-size:12px;font-weight:600;color:var(--gr);margin-bottom:6px;">✅ 已收到專員方案：${S.offerRate}% × ${S.offerTerm}期</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:11.5px;">
+        <div><div style="color:var(--gr);opacity:.7;font-size:10.5px;">整合後月還</div><div style="font-weight:600;color:var(--gr);">${fmtD(Math.round(newM))}</div></div>
+        <div><div style="color:var(--gr);opacity:.7;font-size:10.5px;">每月省下</div><div style="font-weight:600;color:var(--gr);">${mSave>0?'+':''}${fmtD(Math.round(mSave))}</div></div>
+        <div><div style="color:var(--gr);opacity:.7;font-size:10.5px;">是否值得</div><div style="font-weight:600;color:${S.offerRate<=7?'var(--gr)':'var(--am)'};">${S.offerRate<=7?'✓ 建議接受':'⚠ 可再議'}</div></div>
+      </div>
+      ${S.offerNote?`<div style="font-size:11px;color:var(--gr);margin-top:6px;opacity:.8;">備註：${S.offerNote}</div>`:''}
+    </div>`;
+  } else {
+    el.innerHTML=`<div class="al al-bl">📩 尚未收到專員回覆。收到後請點右上角「更新數據」，填入「信貸方案更新」欄位，系統將自動試算效益。</div>`;
+  }
+}
+
+// ══ INVEST ══
+function renderInvest() {
+  const preCks=['緊急備用金已達1個月以上','借貸利率低於預期投資報酬率','即使投資虧損30%，仍能正常繳款'];
+  document.getElementById('invest-pre-checks').innerHTML=preCks.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--b1);cursor:pointer;" onclick="S.investChecks[${i}]=!S.investChecks[${i}];save();renderInvest();">
+      <div class="hc-box ${S.investChecks[i]?'done':''}">${S.investChecks[i]?'✓':''}</div>
+      <span class="hc-text ${S.investChecks[i]?'done':''}">${t}</span>
+    </div>`).join('');
+  calcIV();
+  calcCMP();
+}
+
+function calcIV() {
+  const rate=parseFloat(document.getElementById('iv-rate').value)||5.5;
+  const ret=parseFloat(document.getElementById('iv-ret').value)||8;
+  const amt=parseFloat(document.getElementById('iv-amt').value)||100000;
+  const spread=ret-rate;
+  const allOk=S.investChecks.every(v=>v);
+  const el=document.getElementById('iv-result');
+  if(!allOk){el.innerHTML=`<div class="al al-am">請先確認上方三項條件都符合，才建議考慮借貸投資。</div>`;return;}
+  if(spread<=0){el.innerHTML=`<div class="al al-rd">借貸利率（${rate}%）≥ 預期報酬（${ret}%），利差為負，<strong>不建議借錢投資</strong>。</div>`;return;}
+  el.innerHTML=`<div class="al al-gr">利差 ${spread.toFixed(1)}%，每年預期額外收益 ${fmtD(Math.round(amt*spread/100))} 元。槓桿在數學上可行，但需承受市場波動風險。</div>`;
+}
+
+function calcCMP() {
+  const m=parseInt(document.getElementById('cmp-m').value)||3000;
+  const r=parseFloat(document.getElementById('cmp-r').value)||8;
+  const y=parseInt(document.getElementById('cmp-y').value)||10;
+  document.getElementById('cmp-y-out').textContent=y+' 年';
+  const mr=r/100/12;
+  let total=0;
+  const labels=[],tData=[],iData=[];
+  for(let mo=1;mo<=y*12;mo++){total=total*(1+mr)+m;if(mo%12===0){labels.push(mo/12+'年');tData.push(Math.round(total));iData.push(m*mo);}}
+  const invested=m*y*12;
+  document.getElementById('cmp-kpis').innerHTML=[
+    {l:'累計投入',v:fmtD(invested)},{l:'預估資產',v:fmtD(Math.round(total)),c:'c-gr'},{l:'複利獲益',v:'+'+fmtD(Math.round(total-invested)),c:'c-gr'}
+  ].map(k=>`<div class="card card-sm" style="padding:.65rem;"><div class="kpi-label" style="font-size:9.5px;">${k.l}</div><div style="font-size:15px;font-weight:600;${k.c?'color:var(--gr)':''}">${k.v}</div></div>`).join('');
+  cmpC=destroyChart(cmpC);
+  cmpC=mkChart('cmpChart',{type:'line',data:{labels,datasets:[
+    {label:'總資產',data:tData,borderColor:'#8B7FFF',backgroundColor:'rgba(139,127,255,.08)',tension:.3,fill:true,pointRadius:2,borderWidth:2},
+    {label:'本金',data:iData,borderColor:'#555878',backgroundColor:'transparent',tension:0,fill:false,pointRadius:0,borderDash:[4,3]}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#777899',font:{size:10}},position:'top'}},scales:{...chartDefaults.scales_dark,y:{...chartDefaults.scales_dark.y,ticks:{...chartDefaults.scales_dark.y.ticks,callback:v=>'$'+fmt(v/1000)+'k'}}}}});
+}
+
+// ══ GOALS ══
+function renderGoals() {
+  const tI=S.income.salary+S.income.bonus;
+  document.getElementById('vi-now').value=tI;
+  document.getElementById('vi-target').value=S.targetIncome||80000;
+  document.getElementById('vi-life').value=50000;
+  calcVision();
+  renderPhaseTL();
+  renderMilestones();
+  renderVisionItems();
+}
+
+function calcVision() {
+  const target=parseFloat(document.getElementById('vi-target').value)||80000;
+  const now=parseFloat(document.getElementById('vi-now').value)||55000;
+  const life=parseFloat(document.getElementById('vi-life').value)||50000;
+  const gap=target-now;
+  document.getElementById('vi-result').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;">
+      <div class="card card-sm" style="padding:.65rem;"><div class="kpi-label" style="font-size:9.5px;">目標月收入</div><div style="font-size:14px;font-weight:600;">${fmtD(target)}</div></div>
+      <div class="card card-sm" style="padding:.65rem;"><div class="kpi-label" style="font-size:9.5px;">目前月收入</div><div style="font-size:14px;font-weight:600;">${fmtD(now)}</div></div>
+      <div class="card card-sm" style="padding:.65rem;"><div class="kpi-label" style="font-size:9.5px;">每月收入缺口</div><div style="font-size:14px;font-weight:600;color:${gap>0?'var(--am)':'var(--gr)'};">${gap>0?'+':''}${fmtD(gap)}</div></div>
+    </div>
+    ${gap>0?`<div class="al al-am">收入缺口 ${fmtD(gap)} 元。可透過：副業顧問接案（短期）、技能升級加薪（中期）、被動收入建立（長期）三路並行縮短差距。</div>`:
+    `<div class="al al-gr">目前已達到收入目標！下一步聚焦在財富增值。</div>`}`;
+}
+
+function renderPhaseTL() {
+  const phases=[
+    {c:'var(--rd)',bg:'var(--rdd)',tc:'#FF9E98',phase:'現在 ~ 整合完成',label:'止血期',desc:'停止信用卡新增消費 → 確認整合貸款條件 → 發薪日先存 $5,000 備用金 → 娛樂信封 $5,000 上限'},
+    {c:'var(--ac)',bg:'var(--ac3)',tc:'var(--ac2)',phase:'整合後 ~ 備用金達標',label:'穩定期',desc:'每月結餘 → 50% 備用金、30% ETF 定期定額、20% 加速還款 → 建立全額繳清信用卡習慣'},
+    {c:'var(--gr)',bg:'var(--grd)',tc:'#7EEFCA',phase:'備用金達標後',label:'成長期',desc:'ETF 每月投入提升 → 副業顧問收入啟動 → 負債比降到收入 20% 以下 → 考慮加速還房貸'},
+  ];
+  document.getElementById('phase-tl').innerHTML=phases.map(p=>`
+    <div class="tl-item" style="cursor:default;">
+      <div class="tl-dot" style="background:${p.bg};border-color:${p.c};color:${p.c};">●</div>
+      <div class="tl-body">
+        <div class="tl-name">${p.phase} <span style="font-size:10.5px;background:${p.bg};color:${p.tc};padding:1px 7px;border-radius:99px;margin-left:4px;">${p.label}</span></div>
+        <div class="tl-desc">${p.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderMilestones() {
+  document.getElementById('milestone-tl').innerHTML=S.milestones.map((m,i)=>`
+    <div class="tl-item" onclick="S.milestones[${i}].done=!S.milestones[${i}].done;save();renderMilestones();">
+      <div class="tl-dot ${m.done?'done':''}">${m.done?'✓':i+1}</div>
+      <div class="tl-body">
+        <div class="tl-name ${m.done?'done':''}">${m.text}</div>
+        <div class="tl-time">${m.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+const viCatInfo={have:{l:'已擁有',c:'var(--gr)',bg:'var(--grd)'},need:{l:'真正需要',c:'var(--rd)',bg:'var(--rdd)'},want:{l:'只是想要',c:'var(--am)',bg:'var(--amd)'},lever:{l:'可槓桿',c:'var(--ac2)',bg:'var(--ac3)'}};
+
+function renderVisionItems() {
+  const cats=Object.keys(viCatInfo);
+  document.getElementById('vision-items-list').innerHTML=cats.map(cat=>{
+    const items=S.visionItems.filter(v=>v.cat===cat);
+    if(!items.length)return'';
+    const info=viCatInfo[cat];
+    return`<div style="margin-bottom:8px;"><div style="font-size:10.5px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;">${info.l}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;">${items.map((v,i)=>`<span style="background:${info.bg};color:${info.c};font-size:11px;padding:3px 9px;border-radius:99px;cursor:pointer;" onclick="S.visionItems.splice(S.visionItems.indexOf(v),1);save();renderVisionItems();">${v.text} ✕</span>`).join('')}</div></div>`;
+  }).join('');
+}
+
+function addVision() {
+  const t=document.getElementById('vi-new-text').value.trim();
+  const c=document.getElementById('vi-new-cat').value;
+  if(!t)return;
+  S.visionItems.push({text:t,cat:c});
+  document.getElementById('vi-new-text').value='';
+  save(); renderVisionItems();
+}
+
+// ══ RESOURCE ══
+function renderResource() {
+  const resCks=['已填完財務儀表板，清楚每月現金流','新資金用途是降低負債成本或增加收入（非消費）','整合後月繳不超過月收入 40%','整合後仍保有至少 1 個月緊急備用金'];
+  document.getElementById('res-pre-checks').innerHTML=resCks.map((t,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--b1);cursor:pointer;" onclick="S.resChecks[${i}]=!S.resChecks[${i}];save();renderResource();">
+      <div class="hc-box ${S.resChecks[i]?'done':''}" style="margin-top:2px;">${S.resChecks[i]?'✓':''}</div>
+      <span class="hc-text ${S.resChecks[i]?'done':''}">${t}</span>
+    </div>`).join('');
+  renderHabits();
+  calcEnv();
+}
+
+function renderHabits() {
+  const el=document.getElementById('habit-list');
+  if(!el)return;
+  el.innerHTML=S.habits.map((h,i)=>`
+    <div class="hc-item" onclick="S.habits[${i}].done=!S.habits[${i}].done;save();renderHabits();">
+      <div class="hc-box ${h.done?'done':''}">${h.done?'✓':''}</div>
+      <span class="hc-text ${h.done?'done':''}">${h.text}</span>
+    </div>`).join('');
+}
+
+function calcEnv() {
+  const spent=parseInt(document.getElementById('env-spent').value)||0;
+  const budget=parseInt(document.getElementById('env-budget').value)||5000;
+  const left=budget-spent;
+  const pct=Math.min(100,Math.round(spent/budget*100));
+  const el=document.getElementById('env-result');
+  if(!el)return;
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:3px;"><span>已使用</span><span style="font-weight:600;color:${left<0?'var(--rd)':left<1000?'var(--am)':'var(--t1)'};">${fmtD(spent)} / ${fmtD(budget)}</span></div>
+    <div class="prog"><div class="prog-f" style="width:${pct}%;background:${pct>=100?'var(--rd)':pct>=80?'var(--am)':'var(--gr)'}"></div></div>
+    <div class="al al-${left<0?'rd':left<1000?'am':'gr'}" style="margin-top:6px;">${left<0?'⚠ 已超支 '+fmtD(Math.abs(left))+' 元。本月不可再刷娛樂消費。':left<1000?'⚡ 剩餘 '+fmtD(left)+'，謹慎使用。':'✓ 剩餘 '+fmtD(left)+'，預算健康。'}</div>`;
+}
+
+// ══ DATA EDITOR ══
+function openDataEditor() {
+  document.getElementById('ed-sal').value=S.income.salary;
+  document.getElementById('ed-bon').value=S.income.bonus;
+  document.getElementById('ed-cash').value=S.cash;
+  const card=S.debts.find(d=>d.type==='card');
+  const loan=S.debts.find(d=>d.type==='loan');
+  document.getElementById('ed-card').value=card?.amt||0;
+  document.getElementById('ed-loan').value=loan?.amt||0;
+  document.getElementById('ed-mort').value=S.mortgage.balance;
+  document.getElementById('ed-hval').value=S.houseVal;
+  document.getElementById('ed-ti').value=S.targetIncome||80000;
+  document.getElementById('ed-offer-rate').value=S.offerRate||'';
+  document.getElementById('ed-offer-term').value=S.offerTerm||'';
+  document.getElementById('ed-note').value=S.offerNote||'';
+  document.getElementById('dataModal').classList.add('on');
+}
+
+function closeDataModal() { document.getElementById('dataModal').classList.remove('on'); }
+
+function saveData() {
+  S.income.salary=parseInt(document.getElementById('ed-sal').value)||55000;
+  S.income.bonus=parseInt(document.getElementById('ed-bon').value)||25000;
+  S.cash=parseInt(document.getElementById('ed-cash').value)||0;
+  const card=S.debts.find(d=>d.type==='card');
+  const loan=S.debts.find(d=>d.type==='loan');
+  if(card) card.amt=parseInt(document.getElementById('ed-card').value)||0;
+  if(loan) loan.amt=parseInt(document.getElementById('ed-loan').value)||0;
+  S.mortgage.balance=parseInt(document.getElementById('ed-mort').value)||0;
+  S.houseVal=parseInt(document.getElementById('ed-hval').value)||7770000;
+  S.targetIncome=parseInt(document.getElementById('ed-ti').value)||80000;
+  const or=parseFloat(document.getElementById('ed-offer-rate').value);
+  const ot=parseInt(document.getElementById('ed-offer-term').value);
+  S.offerRate=isNaN(or)?null:or;
+  S.offerTerm=isNaN(ot)?null:ot;
+  S.offerNote=document.getElementById('ed-note').value;
+  save(); closeDataModal();
+  // re-render current page
+  const cur=PAGES.find(p=>document.getElementById('pg-'+p).classList.contains('on'))||'dashboard';
+  go(cur);
+}
+
+// ══ DEBT MODAL ══
+function openDebtModal(){document.getElementById('debtModal').classList.add('on');}
+function saveDebt(){
+  const n=document.getElementById('dm-n').value.trim();
+  const a=parseFloat(document.getElementById('dm-a').value);
+  const r=parseFloat(document.getElementById('dm-r').value);
+  const m=parseFloat(document.getElementById('dm-m').value);
+  if(!n||isNaN(a)||isNaN(r)||isNaN(m))return;
+  S.debts.push({id:++S.nextId,name:n,type:document.getElementById('dm-t').value,amt:a,rate:r,min:m});
+  save();document.getElementById('debtModal').classList.remove('on');renderDebt();
+}
+
+// ══ EXP MODAL ══
+function openExpModal(){document.getElementById('expModal').classList.add('on');}
+function saveExp(){
+  const n=document.getElementById('em-n').value.trim();
+  const a=parseFloat(document.getElementById('em-a').value);
+  if(!n||isNaN(a))return;
+  S.expenses.push({id:++S.nextId,name:n,cat:document.getElementById('em-c').value,amt:a});
+  save();document.getElementById('expModal').classList.remove('on');renderDash();
+}
+
+// close modals on overlay click
+document.querySelectorAll('.mov').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on');}));
+
+// ══ INIT ══
+save();
+renderMindset();
+</script>
+</body>
+</html>
